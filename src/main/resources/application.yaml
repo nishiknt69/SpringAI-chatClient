@@ -8,6 +8,19 @@ spring:
         options:
           model: qwen2.5
           temperature: 0.8
+      embedding:
+        options:
+          model: nomic-embed-text
+
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5434/my-test-vector-db?options=-c%20TimeZone=Asia/Kolkata
+    username: my-user
+    password: password
+    driver-class-name: org.postgresql.Driver
 
 logging:
   level:
