@@ -18,6 +18,12 @@ public class AIServiceTest {
     }
 
     @Test
+    public void testAskAI(){
+        var res = aiService.askAI("what is spring ai");
+        System.out.println(res);
+    }
+
+    @Test
     public void testEmbedText(){
         var embed = aiService.getEmbedding("This is a big text here.");
         System.out.println(embed.length);
@@ -26,10 +32,10 @@ public class AIServiceTest {
         }
     }
 
-    @Test
-    public void testStoreData(){
-        aiService.ingestDataToVectorStore();
-    }
+//    @Test
+//    public void testStoreData(){
+//        aiService.ingestDataToVectorStore();
+//    }
 
     @Test
     public void testSimilaritySearch(){

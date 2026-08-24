@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,6 +81,72 @@ public class AIService {
 
         );
         vectorStore.add(movies);
+        vectorStore.add(springAiDocs());
+    }
+
+    public String askAI(String prompt){
+        String template = """
+                You are an AI assistant helping a developer.
+                
+                Rules:
+                - Use only the information provided in the context
+                - You May rephrase, summarize, and explain in natural language
+                - Do not introduce new concepts or facts
+                - If multiple context sections are relevant, combine them into a single explanation.
+                - If the answer is not present, say "I don't know"
+                
+                context
+                {context}
+                
+                Answer in a friendly, conversational tone.
+                """;
+
+        List<Document> documents = vectorStore.similaritySearch(SearchRequest.builder()
+                        .query(prompt)
+                        .topK(2)
+                        .filterExpression("topic == 'ai' or topic == 'vectorstore'")
+                        .build());
+
+        String context = documents.stream()
+                .map(Document::getText)
+                .collect(Collectors.joining("\n\n"));
+
+        PromptTemplate promptTemplate = new PromptTemplate(template);
+        String systemPrompt = promptTemplate.render(Map.of("context", context));
+
+
+        return chatClient.prompt()
+                .system(systemPrompt)
+                .user(prompt)
+                .advisors(
+                        new SimpleLoggerAdvisor()
+                )
+                .call()
+                .content();
+    }
+
+    public static List<Document> springAiDocs(){
+        return List.of(
+                new Document(
+                        "Spring AI provides abstractions like ChatClient, ChatModel, and EmbeddingModel to interact with LLMs",
+                        Map.of("topic", "ai")
+                ),
+
+                new Document(
+                        "Spring AI supports vector databases for storing and searching embeddings",
+                        Map.of("topic", "vector-database")
+                ),
+
+                new Document(
+                        "EmbeddingModel converts text into numerical vectors that can be used for semantic search",
+                        Map.of("topic", "embeddings")
+                ),
+
+                new Document(
+                        "ChatClient makes it easier to send prompts and receive responses from language models",
+                        Map.of("topic", "chat-client")
+                )
+        );
     }
 
     public List<Document> similaritySearch(String text){
