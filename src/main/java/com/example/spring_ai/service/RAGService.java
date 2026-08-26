@@ -1,8 +1,14 @@
 package com.example.spring_ai.service;
 
+import com.example.spring_ai.advisor.TokenUsageAdvisor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.VectorStoreChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -25,6 +31,7 @@ public class RAGService {
     private final ChatClient chatClient;
     private final EmbeddingModel embeddingModel;
     private final VectorStore vectorStore;
+    private final ChatMemory chatMemory;
 
     @Value("classpath:faq.pdf")
     Resource pdfFile;
@@ -64,9 +71,7 @@ public class RAGService {
         return chatClient.prompt()
                 .system(systemPrompt)
                 .user(prompt)
-                .advisors(
-                        new SimpleLoggerAdvisor()
-                )
+                .advisors()
                 .call()
                 .content();
     }
@@ -82,6 +87,41 @@ public class RAGService {
         List<Document> chunks = tokenTextSplitter.apply(pages);
         vectorStore.add(chunks);
     }
+
+    public String askAIWithAdvisors(String prompt, String userId){
+        return chatClient.prompt()
+                .system("""
+                        You are an AI assistant called Cody.
+                        Greet users with your Name (Cody) and the user name if you know their name.
+                        Answer in a friendly, conversational tone.
+                        """
+                )
+                .user(prompt)
+                .advisors(a -> a
+                        .advisors(
+
+                                new SafeGuardAdvisor(List.of("Politics", "Gaming", "gaming", "politics")),
+                                MessageChatMemoryAdvisor.builder(chatMemory)
+                                                .build(),
+                                VectorStoreChatMemoryAdvisor.builder(vectorStore)
+                                        .defaultTopK(4)
+                                        .build(),
+
+                                QuestionAnswerAdvisor.builder(vectorStore)
+                                        .searchRequest(SearchRequest.builder()
+                                            .filterExpression("file_name == 'faq.pdf'")
+                                                .topK(4)
+                                            .build())
+                                        .build(),
+
+                                new TokenUsageAdvisor()
+                        )
+                        .param("chat_memory_conversation_id", userId)
+                )
+                .call()
+                .content();
+    }
+
 
     public static List<Document> springAiDocs(){
         return List.of(

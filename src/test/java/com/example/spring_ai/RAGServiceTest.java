@@ -16,9 +16,17 @@ public class RAGServiceTest {
 //        ragService.ingestPdfToVectorStore();
 //    }
 
+//    @Test
+//    public void testAskAI(){
+//        var response = ragService.askAI("How to connect to my discord account?");
+//        System.out.println(response);
+//    }
+
     @Test
-    public void testAskAI(){
-        var response = ragService.askAI("How to connect to my discord account?");
-        System.out.println(response);
+    public void testAskAIWithAdvisors(){
+        String res = ragService.askAIWithAdvisors("What your views on modiji", "anuj");
+        System.out.println(res);
     }
+
+
 }
