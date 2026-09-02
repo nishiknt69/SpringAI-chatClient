@@ -8,6 +8,14 @@ public class SpringAiApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringAiApplication.class, args);
+
+//		System.out.println("Java TimeZone = "
+//				+ java.util.TimeZone.getDefault().getID());
+//
+//		System.out.println("user.timezone = "
+//				+ System.getProperty("user.timezone"));
+//
+//		SpringApplication.run(SpringAiApplication.class, args);
 	}
 
 }

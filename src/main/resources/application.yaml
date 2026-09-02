@@ -19,14 +19,19 @@ spring:
       memory:
         repository:
           jdbc:
-            initialize-schema: always
+            initialize-schema: never
             table-name: chat_memory
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/my-test-vector-db?options=-c%20TimeZone=Asia/Kolkata
+    url: jdbc:postgresql://localhost:5434/my-test-vector-db?options=-c%20TimeZone=Asia%2FKolkata
     username: my-user
     password: password
     driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
 logging:
   level:
